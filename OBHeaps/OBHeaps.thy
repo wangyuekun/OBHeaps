@@ -8,24 +8,24 @@ begin
 (*** Definition of a tree  ***)
 datatype 'a tree = Node (rank: nat) (root: 'a) (children: "'a tree list")
 (*** Definition of a obheap  ***)
-datatype 'a obheap = OBHeaps (minval: "'a option") (roots:"'a tree list") 
+datatype 'a OBHeaps = Obheaps (minval: "'a option") (roots:"'a tree list") 
 
 type_synonym 'a heap = "'a tree list"
 
 thm tree.induct
-thm obheap.induct 
-thm obheap.case
+thm OBHeaps.induct 
+thm OBHeaps.case
 
 (***truly minval ***)
 definition "min_value fh = 
-          (case fh of (OBHeaps None _ ) \<Rightarrow> None |
-                      (OBHeaps (Some a) []) \<Rightarrow> None |
-                      (OBHeaps (Some a) xs) \<Rightarrow> minval fh)"
+          (case fh of (Obheaps None _ ) \<Rightarrow> None |
+                      (Obheaps (Some a) []) \<Rightarrow> None |
+                      (Obheaps (Some a) xs) \<Rightarrow> minval fh)"
 (***truly roots ***)
 definition "root_trees fh =
-          (case fh of (OBHeaps None _ ) \<Rightarrow> [] |
-          (OBHeaps (Some a) []) \<Rightarrow> [] |
-          (OBHeaps (Some a) xs) \<Rightarrow> roots fh)"
+          (case fh of (Obheaps None _ ) \<Rightarrow> [] |
+          (Obheaps (Some a) []) \<Rightarrow> [] |
+          (Obheaps (Some a) xs) \<Rightarrow> roots fh)"
 
 fun root_trees_roots::"'a::linorder tree list \<Rightarrow> 'a list " where
  "root_trees_roots [] = []"|
@@ -33,7 +33,7 @@ fun root_trees_roots::"'a::linorder tree list \<Rightarrow> 'a list " where
 
 thm root_trees_roots.simps
 (***A truly empty heap  ***) (**** but OBHeaps None _ & OBHeaps (Some a) [] as empty heap****)
-definition empty_obheap::"'a obheap" where  "empty_obheap = (OBHeaps None []) "
+definition empty_obheap::"'a OBHeaps" where  "empty_obheap = (Obheaps None []) "
 
 (*** Example of a small root tree ***)
 definition "B1 = Node 1 (6::nat) [Node 0 10 [] ]"
@@ -45,11 +45,11 @@ definition "B6 = Node 2 (3::nat) [(Node 0 4 []),(Node 0 5 [])]"
 definition "B7 = Node 2 (1::nat) [(Node 0 2 []),(Node 0 3 [])]"
 
 (*** Example of a small root obheap ***)
-definition "fh0 = OBHeaps None []"
-definition "fh1 = OBHeaps (Some 6) [B1,B2,B3,B4]"
+definition "fh0 = Obheaps None []"
+definition "fh1 = Obheaps (Some 6) [B1,B2,B3,B4]"
 
-fun is_empty_obheap:: "'a obheap \<Rightarrow> bool" where
-  "is_empty_obheap (OBHeaps m ts) = ((m=None)\<or>(ts = []))"
+fun is_empty_obheap:: "'a OBHeaps \<Rightarrow> bool" where
+  "is_empty_obheap (Obheaps m ts) = ((m=None)\<or>(ts = []))"
 
 subsubsection \<open> tree Invariants\<close>
 
@@ -68,10 +68,10 @@ text \<open> OBHeaps invariant\<close>
 
 definition "invar_trees ts \<longleftrightarrow>(if ts = [] then True else (\<forall>t\<in>set ts. invar_tree t)) "
 
-fun invar_min::"'a::linorder obheap \<Rightarrow> bool " where
-"invar_min (OBHeaps m ts) \<longleftrightarrow> (if (m=None)\<or>(ts=[]) then True else (the m) = Min (set(root_trees_roots ts))) "
+fun invar_min::"'a::linorder OBHeaps \<Rightarrow> bool " where
+"invar_min (Obheaps m ts) \<longleftrightarrow> (if (m=None)\<or>(ts=[]) then True else (the m) = Min (set(root_trees_roots ts))) "
 
-fun invar_obheap ::"'a::linorder obheap \<Rightarrow> bool " where
+fun invar_obheap ::"'a::linorder OBHeaps \<Rightarrow> bool " where
 "invar_obheap heap \<longleftrightarrow> invar_min heap \<and> invar_trees (root_trees heap)"
 
 lemma no_empty_obheap_min :"\<not> is_empty_obheap fh \<Longrightarrow> invar_obheap fh \<Longrightarrow>the (minval fh) = Min (set(root_trees_roots (roots fh))) "
@@ -81,23 +81,23 @@ lemma no_empty_obheap_min :"\<not> is_empty_obheap fh \<Longrightarrow> invar_ob
 lemma invar_empty_obheap:"invar_obheap empty_obheap" 
   by (auto simp: invar_trees_def empty_obheap_def root_trees_def) 
 
-lemma "invar_obheap (OBHeaps (Some a) [])" 
+lemma "invar_obheap (Obheaps (Some a) [])" 
   by (auto simp: invar_trees_def root_trees_def) 
 
-lemma empty_obheap_eq:"is_empty_obheap (OBHeaps m ts) \<longleftrightarrow> (m = None)\<or>(ts=[]) "
+lemma empty_obheap_eq:"is_empty_obheap (Obheaps m ts) \<longleftrightarrow> (m = None)\<or>(ts=[]) "
   by auto
 
 (*** proof of no_empty_obheap  ***)
 
-lemma no_empty_obheap_eq:"\<not> is_empty_obheap (OBHeaps (Some a) (x#xs) ) "
+lemma no_empty_obheap_eq:"\<not> is_empty_obheap (Obheaps (Some a) (x#xs) ) "
   by auto
 
-thm obheap.simps
-thm obheap.collapse
+thm OBHeaps.simps
+thm OBHeaps.collapse
 
 lemma no_empty_obheap_invar_min:" \<not> is_empty_obheap fh \<Longrightarrow> the (minval fh) = Min (set(root_trees_roots (roots fh))) 
                                  \<Longrightarrow> invar_min fh"
-  by (metis (no_types) obheap.collapse invar_min.simps)
+  by (metis (no_types) OBHeaps.collapse invar_min.simps)
 
 lemma no_empty_obheap_invar_trees:"\<not> is_empty_obheap fh \<Longrightarrow>(\<forall>t\<in>set (root_trees fh).invar_tree t) \<Longrightarrow> invar_trees (root_trees fh)"
   by (meson invar_trees_def)
@@ -110,15 +110,15 @@ lemma invar_children:
   "invar_tree (Node r a ts) \<Longrightarrow> invar_trees ts" 
   by (simp add: invar_trees_def invar_tree_def)
 
-thm obheap.case_eq_if
-thm obheap.split
+thm OBHeaps.case_eq_if
+thm OBHeaps.split
 lemma noempty_roots: "\<not> is_empty_obheap fh \<Longrightarrow> root_trees fh \<noteq> []"
-  apply(simp add:root_trees_def split:obheap.split list.split option.split)
+  apply(simp add:root_trees_def split:OBHeaps.split list.split option.split)
   using is_empty_obheap.simps by blast 
  
  
 lemma noempty_eq_roots: "\<not> is_empty_obheap fh \<Longrightarrow>  roots fh = root_trees fh" 
-  by(auto simp:root_trees_def split:obheap.split list.split option.split)
+  by(auto simp:root_trees_def split:OBHeaps.split list.split option.split)
 
 (*** tree to multiset ***)
 fun mset_tree :: "'a::linorder tree \<Rightarrow> 'a multiset" where
@@ -129,10 +129,10 @@ definition mset_heap :: "'a::linorder heap  \<Rightarrow> 'a multiset" where
   "mset_heap ts = (\<Sum>t\<in>#mset ts. mset_tree t)"
 
 (*** obheap to multiset ***)
-fun mset_obheap :: "'a::linorder obheap \<Rightarrow> 'a multiset" where
-  "mset_obheap (OBHeaps None _) = {#}"|
-  "mset_obheap (OBHeaps (Some a) []) = {#}"|
-  "mset_obheap (OBHeaps (Some a) xs) = mset_heap xs"
+fun mset_obheap :: "'a::linorder OBHeaps \<Rightarrow> 'a multiset" where
+  "mset_obheap (Obheaps None _) = {#}"|
+  "mset_obheap (Obheaps (Some a) []) = {#}"|
+  "mset_obheap (Obheaps (Some a) xs) = mset_heap xs"
 
 (***proof of mset_tree  ***)
 lemma mset_tree_nonempty[simp]: "mset_tree t \<noteq> {#}"
@@ -228,12 +228,12 @@ end
 
 subsubsection \<open>\<open>ins_tree\<close>\<close>
 
-fun ins_tree :: "'a::linorder tree \<Rightarrow> 'a obheap \<Rightarrow> 'a obheap" where
-  "ins_tree t (OBHeaps None _)= (OBHeaps  (Some(root t)) [t])"|
-  "ins_tree t (OBHeaps (Some a) []) = (OBHeaps  (Some(root t)) [t])"|
-  "ins_tree t (OBHeaps (Some a) xs) = (if root t \<le> a 
-                                    then (OBHeaps  (Some(root t)) (t#xs)) 
-                                    else (OBHeaps  (Some a) (t#xs)))"
+fun ins_tree :: "'a::linorder tree \<Rightarrow> 'a OBHeaps \<Rightarrow> 'a OBHeaps" where
+  "ins_tree t (Obheaps None _)= (Obheaps  (Some(root t)) [t])"|
+  "ins_tree t (Obheaps (Some a) []) = (Obheaps  (Some(root t)) [t])"|
+  "ins_tree t (Obheaps (Some a) xs) = (if root t \<le> a 
+                                    then (Obheaps  (Some(root t)) (t#xs)) 
+                                    else (Obheaps  (Some a) (t#xs)))"
 
 value "ins_tree (Node 3 (2::nat) []) fh0 "
 
@@ -274,7 +274,7 @@ lemma mset_trees_ins_tree[simp]:
 
 subsubsection \<open>\<open>insert\<close>\<close>
 
-definition insert :: "'a::linorder \<Rightarrow> 'a obheap \<Rightarrow> 'a obheap" where
+definition insert :: "'a::linorder \<Rightarrow> 'a OBHeaps \<Rightarrow> 'a OBHeaps" where
 "insert x ts = ins_tree (Node 0 x [] ) ts"
 
 value "insert (2::nat) fh0"
@@ -332,14 +332,14 @@ using assms get_min_member get_min_mset
 
 subsubsection \<open>\<open>merge\<close>\<close>
 
-fun merge::"'a::linorder obheap \<Rightarrow> 'a obheap \<Rightarrow> 'a obheap"where
-  "merge t1 (OBHeaps None _) =t1"|
-  "merge (OBHeaps None _) t2 =t2"|
-  "merge (OBHeaps (Some a) []) t2 = t2"|
-  "merge t1 (OBHeaps (Some a') []) = t1"|
-  "merge (OBHeaps (Some a) ts1) (OBHeaps (Some a') ts2) = (if a \<le> a' 
-                  then (OBHeaps (Some a)  (ts1@ts2)) 
-                  else (OBHeaps (Some a') (ts1@ts2)) )"
+fun merge::"'a::linorder OBHeaps \<Rightarrow> 'a OBHeaps \<Rightarrow> 'a OBHeaps"where
+  "merge t1 (Obheaps None _) =t1"|
+  "merge (Obheaps None _) t2 =t2"|
+  "merge (Obheaps (Some a) []) t2 = t2"|
+  "merge t1 (Obheaps (Some a') []) = t1"|
+  "merge (Obheaps (Some a) ts1) (Obheaps (Some a') ts2) = (if a \<le> a' 
+                  then (Obheaps (Some a)  (ts1@ts2)) 
+                  else (Obheaps (Some a') (ts1@ts2)) )"
 
 value "invar_obheap (merge fh1 fh1)"
 lemma app_invar_trees:"invar_trees ts1 \<Longrightarrow> invar_trees ts2 \<Longrightarrow> invar_trees (ts1@ts2)"
@@ -423,7 +423,7 @@ next
 next
   case (5 a v va a' vb vc)
   then show ?case
-    by (metis Nil_is_append_conv app_invar_trees obheap.sel(2) invar_obheap.elims(2) is_empty_obheap.simps list.distinct(1) merge.simps(5) noempty_eq_roots option.distinct(1)) 
+    by (metis Nil_is_append_conv app_invar_trees OBHeaps.sel(2) invar_obheap.elims(2) is_empty_obheap.simps list.distinct(1) merge.simps(5) noempty_eq_roots option.distinct(1)) 
 qed
 
 
@@ -454,7 +454,7 @@ next
     have 02:"a' = get_min (vb # vc)" 
       by (metis "5.prems"(2) get_min_eq_Min invar_min.simps invar_obheap.elims(1) list.discI option.discI option.sel)
     have 03:"invar_trees (v # va) \<and> invar_trees (vb # vc)" 
-      by (metis "5.prems"(1) "5.prems"(2) obheap.sel(2) invar_obheap.elims(2) no_empty_obheap_eq noempty_eq_roots)
+      by (metis "5.prems"(1) "5.prems"(2) OBHeaps.sel(2) invar_obheap.elims(2) no_empty_obheap_eq noempty_eq_roots)
     have 04:"a = get_min ((v # va) @ vb # vc)" 
       using "01" "02" "03" Min_set_roots True by blast
     have 05:"a = Min (set (root_trees_roots ((v # va) @ vb # vc)))"
@@ -468,7 +468,7 @@ next
     have 07:"a' = get_min (vb # vc)" 
       by (metis "5.prems"(2) get_min_eq_Min invar_min.simps invar_obheap.elims(1) list.discI option.discI option.sel)
     have 08:"invar_trees (v # va) \<and> invar_trees (vb # vc)" 
-      by (metis "5.prems"(1) "5.prems"(2) obheap.sel(2) invar_obheap.elims(2) no_empty_obheap_eq noempty_eq_roots)
+      by (metis "5.prems"(1) "5.prems"(2) OBHeaps.sel(2) invar_obheap.elims(2) no_empty_obheap_eq noempty_eq_roots)
     have 09:"a' = get_min ((v # va) @ vb # vc)" 
       using "06" "07" "08"  False 
       by (metis Min_set_roots' linorder_le_less_linear list.distinct(1))
@@ -492,8 +492,10 @@ lemma mset_obheap_merge[simp]:
   "mset_obheap (merge ts\<^sub>1 ts\<^sub>2) = mset_obheap ts\<^sub>1 + mset_obheap ts\<^sub>2"
   apply (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct)
   apply auto
-  apply (metis app_mest_trees append_Cons is_empty_obheap.simps list.distinct(1) mset_obheap.simps(3) mset_obheap_no_empty mset_trees_Cons' option.simps(3))
-  by (metis app_mest_trees append_Cons list.distinct(1) mset_obheap.simps(3) mset_obheap_empty_iff mset_obheap_no_empty mset_trees_Cons' mset_trees_empty_iff)
+   apply (metis app_mest_trees append_Cons is_empty_obheap.simps list.distinct(1) 
+mset_obheap.simps(3) mset_obheap_no_empty mset_trees_Cons' option.simps(3))
+  by (metis app_mest_trees append_Cons list.distinct(1) mset_obheap.simps(3) 
+mset_obheap_empty_iff mset_obheap_no_empty mset_trees_Cons' mset_trees_empty_iff)
 
 
 
@@ -517,10 +519,10 @@ lemma invar_tree_add:
 
 subsubsection \<open>get_min\<close>
 
-fun get_minval :: "'a::linorder obheap \<Rightarrow> 'a option" where
-  "get_minval (OBHeaps None _) = None"|
-  "get_minval (OBHeaps (Some a) []) = None"|
-  "get_minval (OBHeaps (Some a) xs) = (Some a)"
+fun get_minval :: "'a::linorder OBHeaps \<Rightarrow> 'a option" where
+  "get_minval (Obheaps None _) = None"|
+  "get_minval (Obheaps (Some a) []) = None"|
+  "get_minval (Obheaps (Some a) xs) = (Some a)"
 
 definition "get_min_value fh = the (get_minval fh)"
 
@@ -557,7 +559,7 @@ lemma get_min_value:
   using assms 
   apply(induct fh rule:mset_obheap.induct)
     apply (auto simp:get_min_value_def) 
-  by (metis obheap.sel(2) get_min get_min_eq_Min list.distinct(1) list.simps(15) mset_obheap.simps(3) mset_obheap_empty_iff mset_trees_Cons' no_empty_obheap_eq noempty_eq_roots root_trees_roots.simps(2) set_mset_union)
+  by (metis OBHeaps.sel(2) get_min get_min_eq_Min list.distinct(1) list.simps(15) mset_obheap.simps(3) mset_obheap_empty_iff mset_trees_Cons' no_empty_obheap_eq noempty_eq_roots root_trees_roots.simps(2) set_mset_union)
 
 
 lemma get_min_eq:"\<not> is_empty_obheap fh \<Longrightarrow>invar_obheap fh \<Longrightarrow> get_min_val fh = get_min_value fh"
@@ -578,19 +580,19 @@ qed
 subsubsection \<open>delete_min\<close>
 
 
-fun trees_obheap:: "'a::linorder tree list \<Rightarrow>'a obheap " where
-"trees_obheap [] = OBHeaps None []"|
-"trees_obheap ts = OBHeaps (Some (get_min ts))  ts"
+fun trees_obheap:: "'a::linorder tree list \<Rightarrow>'a OBHeaps " where
+"trees_obheap [] = Obheaps None []"|
+"trees_obheap ts = Obheaps (Some (get_min ts))  ts"
 
 fun del_min :: "'a::linorder tree list \<Rightarrow>'a \<Rightarrow>  'a tree list" where
   "del_min [] a = []"
 | "del_min (t#ts) a = (if a =(root t) then ((children t)@ ts) else (t#(del_min ts a)))"
 
 
-fun delete_min ::"'a::linorder obheap \<Rightarrow>  'a obheap" where
-  "delete_min (OBHeaps None _) = empty_obheap"|
-  "delete_min (OBHeaps (Some a) []) = empty_obheap"|
-  "delete_min (OBHeaps (Some a) xs) = trees_obheap (del_min xs a)"
+fun delete_min ::"'a::linorder OBHeaps \<Rightarrow>  'a OBHeaps" where
+  "delete_min (Obheaps None _) = empty_obheap"|
+  "delete_min (Obheaps (Some a) []) = empty_obheap"|
+  "delete_min (Obheaps (Some a) xs) = trees_obheap (del_min xs a)"
 
 
 lemma app_mset_heap:"mset_heap (x @ y) = mset_heap x + mset_heap y" 
@@ -676,7 +678,7 @@ theorem invar_delete_min[simp]:
   apply (induction fh rule:delete_min.induct)
   apply simp
   apply simp
-  by (metis delete_min.simps(3) obheap.sel(2) invar_min.simps invar_trees_del_min 
+  by (metis delete_min.simps(3) OBHeaps.sel(2) invar_min.simps invar_trees_del_min 
       invar_obheap.elims(2) list.distinct(1) noempty_eq_roots option.sel option.simps(3) 
       trees_obheap.simps(2) trees_obheap_invar)
 
@@ -688,12 +690,12 @@ theorem mset_trees_delete_min:
   apply (induction fh rule:delete_min.induct)
     apply simp
    apply simp
-  by (smt (verit, del_insts) delete_min.simps(3) empty_obheap_def obheap.sel(2) 
+  by (smt (verit, del_insts) delete_min.simps(3) empty_obheap_def OBHeaps.sel(2) 
       get_min get_min_value get_min_value_def get_minval.simps(3) invar_obheap.elims(2) 
       mset_obheap.simps(3) mset_obheap_empty mset_obheap_empty_iff mset_trees_Nil 
       mset_trees_del_min noempty_eq_roots option.sel trees_obheap.elims)
 
-value " (delete_min (merges (OBHeaps (Some 2) [B4,B6]) (OBHeaps (Some 1) [B7,B3])))"
+value " (delete_min (merges (Obheaps (Some 2) [B4,B6]) (Obheaps (Some 1) [B7,B3])))"
 
 subsubsection \<open>mergead\<close>
 
@@ -719,10 +721,11 @@ fun mergead::"'a::linorder tree list \<Rightarrow>'a tree list\<Rightarrow>'a tr
   "mergead [t] x =mergenum x t 1"|
   "mergead (t#t'#ts)  x= (mergead ts (mergenum (t#x) t' (length (t#x))))"
 
-fun adjust::"'a::linorder obheap \<Rightarrow>'a obheap" where
-  "adjust (OBHeaps None _) = (OBHeaps None [])"|
-  "adjust (OBHeaps (Some a) []) = (OBHeaps None [])"|
-  "adjust (OBHeaps (Some a) x) = (OBHeaps (Some a) (mergead x []))"
+fun adjust::"'a::linorder OBHeaps \<Rightarrow>'a OBHeaps" where
+  "adjust (Obheaps None _) = (Obheaps None [])"|
+  "adjust (Obheaps (Some a) []) = (Obheaps None [])"|
+  "adjust (Obheaps (Some a) x) = (Obheaps (Some a) (mergead x []))"
+
 
 value "adjust fh1"
 
@@ -762,13 +765,13 @@ text \<open>
 definition T_link :: "'a::linorder tree \<Rightarrow> 'a tree \<Rightarrow> nat" where
 [simp]: "T_link _ _ = 1"
 
-fun T_ins_tree :: "'a::linorder tree \<Rightarrow> 'a obheap \<Rightarrow> nat" where
-  "T_ins_tree t (OBHeaps None _)=  1"|
-  "T_ins_tree t (OBHeaps (Some a) []) =  1"|
-  "T_ins_tree t (OBHeaps (Some a) xs) = (if root t < a 
+fun T_ins_tree :: "'a::linorder tree \<Rightarrow> 'a OBHeaps \<Rightarrow> nat" where
+  "T_ins_tree t (Obheaps None _)=  1"|
+  "T_ins_tree t (Obheaps (Some a) []) =  1"|
+  "T_ins_tree t (Obheaps (Some a) xs) = (if root t < a 
                                     then 1  
                                     else 1)"
-definition T_insert :: "'a::linorder \<Rightarrow> 'a obheap \<Rightarrow> nat" where
+definition T_insert :: "'a::linorder \<Rightarrow> 'a OBHeaps \<Rightarrow> nat" where
 "T_insert x ts = T_ins_tree (Node 0 x []) ts + 1"
 
 lemma T_ins_tree_simple_bound: "T_ins_tree t ts \<le>  1"
@@ -779,22 +782,22 @@ lemma T_insert_tree_bound: "T_insert x ts \<le> 2"
   by (metis T_ins_tree_simple_bound add_mono_thms_linordered_semiring(3)  one_add_one)
 
 
-fun T_merge::"'a::linorder obheap \<Rightarrow> 'a obheap \<Rightarrow> nat"where
-  "T_merge t1 (OBHeaps None _) =1"|
-  "T_merge (OBHeaps None _) t2 =1"|
-  "T_merge (OBHeaps (Some a) []) t2 = 1"|
-  "T_merge t1 (OBHeaps (Some a') []) = 1"|
-  "T_merge (OBHeaps (Some a) ts1) (OBHeaps (Some a') ts2) = (if a < a' 
+fun T_merge::"'a::linorder OBHeaps \<Rightarrow> 'a OBHeaps \<Rightarrow> nat"where
+  "T_merge t1 (Obheaps None _) =1"|
+  "T_merge (Obheaps None _) t2 =1"|
+  "T_merge (Obheaps (Some a) []) t2 = 1"|
+  "T_merge t1 (Obheaps (Some a') []) = 1"|
+  "T_merge (Obheaps (Some a) ts1) (Obheaps (Some a') ts2) = (if a < a' 
                   then 1 
                   else 1 )"
 
 lemma T_merge_simple_bound: "T_merge t1 t2 \<le> 1"
   by (induction t1 t2 rule: T_merge.induct) auto
 
-fun T_get_minval :: "'a::linorder obheap \<Rightarrow> nat" where
-  "T_get_minval (OBHeaps None _) = 1"|
-  "T_get_minval (OBHeaps (Some a) []) = 1"|
-  "T_get_minval (OBHeaps (Some a) xs) = 1"
+fun T_get_minval :: "'a::linorder OBHeaps \<Rightarrow> nat" where
+  "T_get_minval (Obheaps None _) = 1"|
+  "T_get_minval (Obheaps (Some a) []) = 1"|
+  "T_get_minval (Obheaps (Some a) xs) = 1"
 
 lemma T_get_minval_bound: "T_get_minval fh \<le>  1"
   by (induction fh rule: T_get_minval.induct) auto
@@ -806,16 +809,16 @@ fun T_get_min :: "'a::linorder tree list\<Rightarrow> nat" where
 lemma T_get_min_rest_estimate: "ts\<noteq>[] \<Longrightarrow> T_get_min ts = length ts"
   by (induction ts rule: T_get_min.induct) auto
 
-definition T_root_trees::"'a::linorder obheap \<Rightarrow> nat"where 
+definition T_root_trees::"'a::linorder OBHeaps \<Rightarrow> nat"where 
         "T_root_trees fh =
-          (case fh of (OBHeaps None _ ) \<Rightarrow> 1 |
-          (OBHeaps (Some a) []) \<Rightarrow> 1 |
-          (OBHeaps (Some a) xs) \<Rightarrow> 1)"
+          (case fh of (Obheaps None _ ) \<Rightarrow> 1 |
+          (Obheaps (Some a) []) \<Rightarrow> 1 |
+          (Obheaps (Some a) xs) \<Rightarrow> 1)"
 
 lemma T_root_trees_bound: "T_root_trees fh \<le>  1"
-  by (simp add: T_root_trees_def obheap.case_eq_if list.case_eq_if option.case_eq_if)
+  by (simp add: T_root_trees_def OBHeaps.case_eq_if list.case_eq_if option.case_eq_if)
  
-definition T_get_min_val::"'a::linorder obheap \<Rightarrow> nat"where 
+definition T_get_min_val::"'a::linorder OBHeaps \<Rightarrow> nat"where 
   "T_get_min_val fh = T_get_min (root_trees fh) + (T_root_trees fh)"
 
 lemma T_get_min_val_bound: "\<not>is_empty_obheap fh \<Longrightarrow> T_get_min_val fh \<le>length (root_trees fh)+ 1"
@@ -840,17 +843,18 @@ lemma T_trees_obheap_bound: "T_trees_obheap ts \<le> length ts + 1"
   apply simp
   by (simp add: T_get_min_rest_estimate)
 
-fun T_delete_min' ::"'a::linorder obheap \<Rightarrow>nat \<Rightarrow>  nat" where
-  "T_delete_min' (OBHeaps None _) x= 1"|
-  "T_delete_min' (OBHeaps (Some a) []) x= 1"|
-  "T_delete_min' (OBHeaps (Some a) xs) x = x+ T_del_min' xs a"
+fun T_delete_min' ::"'a::linorder OBHeaps\<Rightarrow>nat \<Rightarrow>  nat" where
+  "T_delete_min' (Obheaps None _) x= 1"|
+  "T_delete_min' (Obheaps (Some a) []) x= 1"|
+  "T_delete_min' (Obheaps (Some a) xs) x = x+ T_del_min' xs a"
 
 
 lemma T_delete_min_bound: "\<not>is_empty_obheap fh  \<Longrightarrow> T_delete_min' fh k \<le> 2*length(root_trees fh) + k+1"
   apply(induction fh k rule:T_delete_min'.induct )
   apply simp
    apply fastforce
-  by (metis (full_types) T_del_min_bound T_delete_min'.simps(3) obheap.sel(2) group_cancel.add1 group_cancel.add2 nat_add_left_cancel_le noempty_eq_roots)
-  
+  by (metis (full_types) T_del_min_bound T_delete_min'.simps(3) OBHeaps.sel(2) group_cancel.add1 group_cancel.add2 nat_add_left_cancel_le noempty_eq_roots)
+
+export_code empty_obheap insert get_min merge del_min in Haskell
 
 end
