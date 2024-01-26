@@ -31,16 +31,10 @@ and invar_merge: "\<lbrakk> invar h1; invar h2 \<rbrakk> \<Longrightarrow> invar
 
 
 
-interpretation PQM: Heap_Merge 
-where empty = empty_obheap 
-and is_empty = is_empty_obheap 
-and insert =OBHeaps.insert
-and get_min = get_min_value 
-and del_min = delete_min 
-and invar = OBHeaps.invar_obheap 
-and mset = mset_obheap 
-and merge = merge
-
+interpretation OBHeaps: Heap_Merge 
+where empty = empty_obheap and is_empty = is_empty_obheap and insert =OBHeaps.insert
+and get_min = get_min_value and del_min = delete_min and invar = OBHeaps.invar_obheap 
+and mset = mset_obheap and merge = merge
 proof(standard, goal_cases)
   case 1 then show ?case using obheaps.invar_empty by auto 
 next
